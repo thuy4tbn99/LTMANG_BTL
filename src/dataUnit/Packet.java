@@ -1,3 +1,4 @@
+package dataUnit;
 public class Packet 
 {
 	// Cấu trúc packet cơ bản
