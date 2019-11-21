@@ -1,15 +1,14 @@
-package dataUnit;
+package protocol;
 
 import java.io.Serializable;
 
-public class Packet implements Serializable{
+public class Packet implements Serializable {
 	// Cấu trúc packet cơ bản
 	// TODO Bổ sung các loại tin khác
 	private Message msgType;
 	private long dataLength;
 	private long offset;
 	private byte[] data;
-	
 	
 	public Packet(Message msgType, long dataLength, long offset, byte[] data)
 	{
@@ -60,7 +59,5 @@ public class Packet implements Serializable{
 	{
 		this.data = data;
 	}
-	
-	
 }
 
