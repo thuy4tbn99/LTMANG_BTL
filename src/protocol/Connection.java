@@ -18,16 +18,19 @@ public class Connection extends Thread {
 	
 	public Connection(Socket sv) {
 		socketConnection = sv;
+		start();
 	}
 	
 	public Connection() {}
 	
 	public void run() {
 		try {
-			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
-			socketRead = new ObjectInputStream(socketConnection.getInputStream());
+			// Nếu tạo 2 biến dưới thì không in ra cái ở hàm sendDatatoClient
+			// Fix pls
+			// socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
+			// socketRead = new ObjectInputStream(socketConnection.getInputStream());
 			sendDatatoClient();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -35,6 +38,8 @@ public class Connection extends Thread {
 	public void sendDatatoClient() {
 		// gui du lieu o day
 		// Du lieu se la dang Packet
+		System.out.println("Thread created!");
+		
 	}
 
 	public Socket getSocketConnection()
