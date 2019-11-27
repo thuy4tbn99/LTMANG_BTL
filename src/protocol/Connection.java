@@ -25,11 +25,17 @@ public class Connection extends Thread {
 	
 	public void run() {
 		try {
+                        System.out.println("Thread created!");
 			// Nếu tạo 2 biến dưới thì không in ra cái ở hàm sendDatatoClient
 			// Fix pls
-			// socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
-			// socketRead = new ObjectInputStream(socketConnection.getInputStream());
-			sendDatatoClient();
+			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
+                        System.out.println("Open Output Stream");
+			// Bug here
+                        socketRead = new ObjectInputStream(socketConnection.getInputStream());
+                        System.out.println("Open Input Stream");
+			//sendDatatoClient();
+                        System.out.println("Thread closeed!");
+                        
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -38,7 +44,7 @@ public class Connection extends Thread {
 	public void sendDatatoClient() {
 		// gui du lieu o day
 		// Du lieu se la dang Packet
-		System.out.println("Thread created!");
+		
 		
 	}
 
