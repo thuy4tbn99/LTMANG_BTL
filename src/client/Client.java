@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+
+import protocol.*;
 
 
 public class Client {
@@ -19,9 +22,9 @@ public class Client {
             System.out.println("Connected.");
             socketWrite = new ObjectOutputStream(sock.getOutputStream());
             
-            while(true) {
-            	//System.out.println("trong while client");
-            }  
+            String message = "This is a test message.";
+            socketWrite.writeObject(new Packet(Message.BEGIN, message.length(), message.getBytes(StandardCharsets.UTF_8)));
+              
         }
         catch (IOException ex)
         {

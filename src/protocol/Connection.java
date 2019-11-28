@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class Connection extends Thread {
 	
@@ -32,15 +33,31 @@ public class Connection extends Thread {
             // bên client chưa tạo connect đến nên getInputStream bị hold cho đến khi có stream từ client
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
             System.out.println("Open Input Stream");
-			//sendDatatoClient();         
+			//sendData;  
+            receiveData();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void sendDatatoClient() {
+	public void sendData() {
 		// gui du lieu o day
 		// Du lieu se la dang Packet
+	}
+	public void receiveData()
+	{
+		try 
+		{
+			packet = (Packet) socketRead.readObject();
+			System.out.println("Message type: " + packet.getMsgType().toString());
+			System.out.println("Message length: " + packet.getDataLength());
+			System.out.println("Message data: " + new String(packet.getData(), StandardCharsets.UTF_8));
+			
+		} 
+		catch (ClassNotFoundException | IOException e) 
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public Socket getSocketConnection()

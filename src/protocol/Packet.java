@@ -7,13 +7,11 @@ public class Packet implements Serializable {
 	// TODO Bổ sung các loại tin khác
 	private Message msgType;
 	private long dataLength;
-	private long offset;
 	private byte[] data;
 	
-	public Packet(Message msgType, long dataLength, long offset, byte[] data)
+	public Packet(Message msgType, long dataLength, byte[] data)
 	{
 		this.msgType = msgType;
-		this.offset = offset;
 		this.dataLength = dataLength;
 		this.data = data;
 	}
@@ -38,16 +36,6 @@ public class Packet implements Serializable {
 	public void setDataLength(long dataLength) 
 	{
 		this.dataLength = dataLength;
-	}
-
-	public long getOffset() 
-	{
-		return offset;
-	}
-
-	public void setOffset(long offset) 
-	{
-		this.offset = offset;
 	}
 
 	public byte[] getData() 

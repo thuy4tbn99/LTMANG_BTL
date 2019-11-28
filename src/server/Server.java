@@ -7,12 +7,12 @@ import java.util.ArrayList;
 
 import protocol.Connection;
 
-public class server {
+public class Server {
 	
 	private ServerSocket serverSocket = null;
 	private ArrayList<Connection> serverConnection = new ArrayList<Connection>(); // quan ly cac ket noi tu client
 	
-	public server() {
+	public Server() {
 		try {
 			serverSocket = new ServerSocket(2345);
 		} catch (IOException e) {
@@ -36,7 +36,7 @@ public class server {
 	}
 	
 	public static void main(String[] args) {
-		new server();
+		new Server();
 	}
 	
 }
