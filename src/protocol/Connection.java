@@ -20,22 +20,19 @@ public class Connection extends Thread {
 		socketConnection = sv;
 		start();
 	}
-	
-	public Connection() {}
-	
+		
 	public void run() {
 		try {
-                        System.out.println("Thread created!");
+            System.out.println("Thread created!");
 			// Nếu tạo 2 biến dưới thì không in ra cái ở hàm sendDatatoClient
-			// Fix pls
+           
 			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
-                        System.out.println("Open Output Stream");
-			// Bug here
-                        socketRead = new ObjectInputStream(socketConnection.getInputStream());
-                        System.out.println("Open Input Stream");
-			//sendDatatoClient();
-                        System.out.println("Thread closeed!");
-                        
+            System.out.println("Open Output Stream");
+            
+            // bên client chưa tạo connect đến nên getInputStream bị hold cho đến khi có stream từ client
+            socketRead = new ObjectInputStream(socketConnection.getInputStream());
+            System.out.println("Open Input Stream");
+			//sendDatatoClient();         
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -44,8 +41,6 @@ public class Connection extends Thread {
 	public void sendDatatoClient() {
 		// gui du lieu o day
 		// Du lieu se la dang Packet
-		
-		
 	}
 
 	public Socket getSocketConnection()

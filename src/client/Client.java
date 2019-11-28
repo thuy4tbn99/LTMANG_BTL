@@ -1,38 +1,50 @@
 package client;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 
 public class Client {
-    public Client()
+	Socket sock = null;
+	private ObjectOutputStream socketWrite 	= null;
+	private ObjectInputStream socketRead 	= null;
+	
+    public Client(String ip, int port)
     {
         try
         {
-            Socket sock = new Socket("127.0.0.1", 5555);
+            sock = new Socket(ip, port);
             System.out.println("Connected.");
-            doSomething();
-            sock.close();
+            socketWrite = new ObjectOutputStream(sock.getOutputStream());
             
+            while(true) {
+            	//System.out.println("trong while client");
+            }  
         }
         catch (IOException ex)
         {
             ex.printStackTrace();
+        }
+        finally {
+        	try {
+				sock.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
         }
         
     }
     
     public void doSomething()
     {
-        for(int i=0; i<10; i++)
-        {
-            System.out.println(i);
-        }
+        System.out.println("do smt");
     }
     
-    public static void main()
+    public static void main(String[] args)
     {
-        Client Cli = new Client();
+        Client Cli = new Client("127.0.0.1", 2345);
         
     }
     
