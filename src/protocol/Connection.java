@@ -25,12 +25,12 @@ public class Connection extends Thread {
 	public void run() {
 		try {
             System.out.println("Thread created!");
-			// Nếu tạo 2 biến dưới thì không in ra cái ở hàm sendDatatoClient
+		
            
 			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
             System.out.println("Open Output Stream");
             
-            // bên client chưa tạo connect đến nên getInputStream bị hold cho đến khi có stream từ client
+        
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
             System.out.println("Open Input Stream");
 			//sendData;  
