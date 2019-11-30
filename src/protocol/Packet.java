@@ -3,8 +3,7 @@ package protocol;
 import java.io.Serializable;
 
 public class Packet implements Serializable {
-	// Cấu trúc packet cơ bản
-	// TODO Bổ sung các loại tin khác
+	// Cau truc packet don gian
 	private Message msgType;
 	private long dataLength;
 	private byte[] data;
