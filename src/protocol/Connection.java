@@ -1,8 +1,11 @@
 package protocol;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -15,7 +18,10 @@ public class Connection extends Thread {
 	private ObjectInputStream socketRead 	= null;
 	private FileOutputStream fileWrite 		= null;
 	private FileInputStream fileRead  		= null;
-	private Packet packet;
+	private Packet packet 					= null;
+	private File file 						= null;
+	private final int bufferSize 			= 2048;
+	private boolean client;
 	
 	public Connection(Socket sv) {
 		socketConnection = sv;
@@ -24,40 +30,189 @@ public class Connection extends Thread {
 		
 	public void run() {
 		try {
-            System.out.println("Thread created!");
-		
-           
-			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
-            System.out.println("Open Output Stream");
-            
-        
+            System.out.println("A thread has been created!");
+		       
+			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());   
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
-            System.out.println("Open Input Stream");
-			//sendData;  
-            receiveData();
+           
+            
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public void sendData() {
-		// gui du lieu o day
-		// Du lieu se la dang Packet
-	}
-	public void receiveData()
+	public void clientTalk()
 	{
-		try 
+		while (true)
 		{
-			packet = (Packet) socketRead.readObject();
-			System.out.println("Message type: " + packet.getMsgType().toString());
-			System.out.println("Message length: " + packet.getDataLength());
-			System.out.println("Message data: " + new String(packet.getData(), StandardCharsets.UTF_8));
-			
-		} 
-		catch (ClassNotFoundException | IOException e) 
-		{
-			e.printStackTrace();
+			try
+			{
+				// Doc yeu cau cua nguoi dung
+				BufferedReader cmdReader = new BufferedReader(new InputStreamReader(System.in));
+				System.out.println("What do you want to do?");
+				System.out.println("Type LIST if you want to see the files available on the server, GET <space> fileName to download the file. ");
+				System.out.print("Your request: ");
+				String request = cmdReader.readLine().toLowerCase().trim();
+				if (request.contains("list"))
+				{
+					packet = new Packet(Message.LISTFILE, 0, null);
+					socketWrite.writeObject(packet);
+					
+					// Doc ten cac file tu server
+					packet = (Packet) socketRead.readObject();
+					System.out.println("List of files: ");
+					System.out.println(new String(packet.getData(), StandardCharsets.UTF_8));
+
+				}
+				else if (request.contains("get"))
+				{
+					String[] tokens = request.split("\\s+");
+					// Gui request
+					packet = new Packet(Message.SENDFILE, tokens[1].length(), tokens[1].getBytes());
+					socketWrite.writeObject(packet);
+					client = true;
+					// Khong nhan duoc het file, file cu bi thieu du lieu
+					// Kiem tra loi o cho RECV vs SEND
+					serverTalk();
+				}
+			} 
+			catch (IOException | ClassNotFoundException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		
+	}
+	
+	public void serverTalk()
+	{
+		while (true)
+		{
+			try 
+			{
+				packet = (Packet) socketRead.readObject();
+				switch(packet.getMsgType())
+				{
+					// Xu li cac kieu cua tin nhan
+					case NOTI:
+					{
+						// In tin nhan duoc gui ra man hinh
+						System.out.println(new String(packet.getData(), StandardCharsets.UTF_8));
+						break;
+					}
+					case SENDFILE:
+					{
+						try
+						{
+							// Ten file se duoc gui trong phan data duoi dang string
+							file = new File("server/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+							fileRead = new FileInputStream(file);
+							long fileSize = file.length();
+							System.out.println(fileSize);
+						
+							// Doc va gui file cho nguoi request
+							socketWrite.writeObject(new Packet(Message.RECVFILE, file.getName().getBytes().length, file.getName().getBytes()));
+							
+							/* Nhet cai file size vao trong packet???
+							 * Chuyen tu long sang byte hay de ntn?
+							 * Co cai nay cua google ma phai add jar vao 
+							 * https://github.com/google/guava/wiki/PrimitivesExplained#byte-conversion-methods
+							 * Prim la kieu long, int, ....
+							 */
+							socketWrite.writeLong(fileSize);
+							
+							// Doc roi gui nhu binh thuong
+							// Kiem tra lai doan duoi, hinh nhu data bi mat
+							byte[] buffer = new byte[bufferSize];
+							int count;
+							while ((count = fileRead.read(buffer)) >= 0)
+							{
+								socketWrite.writeObject(new Packet(null, count, buffer));
+							}
+							System.out.println("File sent to the client!");
+							fileWrite.close();
+						}
+						catch (IOException e)
+						{
+							String error = "Cannot find or open the file you requested.";
+							socketWrite.writeObject(new Packet(Message.NOTI, error.getBytes().length, error.getBytes()));
+						}
+						break;
+					}
+					case RECVFILE:
+					{
+						try 
+						{
+							file = new File("client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+							fileWrite = new FileOutputStream(file);
+							System.out.println("IN HERE");
+							
+							// Hien tai chua chuyen duoc long sang byte nen khong dung packet
+							long fileSize = socketRead.readLong();
+							int count;
+							
+							// Doc du lieu roi viet vao file
+
+							// Dung luong giong nhau nhung file thi khong giong
+							while (fileSize > 0)
+							{
+								packet = (Packet) socketRead.readObject();
+								count = (int) packet.getDataLength();
+								fileWrite.write(packet.getData(), 0, count);
+								fileSize -= count;
+							}
+							System.out.println("File received!");
+							fileWrite.close();
+							if (client) return;
+							else break;
+						}
+						catch (ClassNotFoundException | IOException e) 
+						{
+							e.printStackTrace();
+						}
+						break;
+					}
+					
+					case LISTFILE:
+					{
+						// Liet ke danh sach file trong folder
+						File folder = new File("server/files");
+						File[] fileNames = folder.listFiles();
+						if (fileNames.length == 0)
+						{
+							String message = "No file exist in the server folder.";
+							socketWrite.writeObject(new Packet(Message.NOTI, message.getBytes().length, message.getBytes()));
+						} 
+						
+						// Tao string chua ten cac file trong folder do
+						StringBuilder message = new StringBuilder();
+						for (int i = 0; i < fileNames.length; i++)
+						{
+							message.append(fileNames[i].getName() + " ");
+						}
+						
+						// E F F I C I E N C Y
+						message.trimToSize();
+						// HELP TOI LAM CA TOI DAU LUNG LAM ROI
+						socketWrite.writeObject(new Packet(Message.NOTI, message.toString().getBytes().length, message.toString().getBytes()));
+						break;
+					}
+					default: 
+					{
+						System.out.println("Connection terminated!");
+						break;
+					} 
+				}
+			}
+			catch (IOException | ClassNotFoundException | NullPointerException e)
+			{
+				/* Doc packet lien tuc tu socket nen no bi NullPointerEx vi client chua gui gi ca
+				 * Co cach nao tot hon k??
+				 */
+				continue;
+			}
+		} 
+		
 	}
 
 	public Socket getSocketConnection()

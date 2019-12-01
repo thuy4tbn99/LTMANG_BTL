@@ -13,22 +13,31 @@ public class Server {
 	private ArrayList<Connection> serverConnection = new ArrayList<Connection>(); // quan ly cac ket noi tu client
 	
 	public Server() {
+		System.out.println("Server has been started!");
 		try {
 			serverSocket = new ServerSocket(2345);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println("Currently listening on port 2345.....");
 		
 		while (true) {
-			// them ket noi moi vao 1 arrayList
+			// Them ket noi moi vao 1 arrayList
 			
 			Socket acceptedSocket = null;
 			try {
 				acceptedSocket = serverSocket.accept();
-				Connection newCont = new Connection(acceptedSocket);
-				serverConnection.add(newCont);	
+				Connection newConn = new Connection(acceptedSocket);
+				serverConnection.add(newConn);	
+				
+				System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " +  acceptedSocket.getPort());
+				
+				// Bat dau trao doi du lieu
+				// serverTalk ben Connection.java
+				newConn.serverTalk();
+				
 			} catch (IOException e) {
-				System.out.println("client closed");
+				System.out.println("Cannot established a connection with the client.");
 				continue;
 			}
 			

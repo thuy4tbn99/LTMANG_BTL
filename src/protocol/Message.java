@@ -2,5 +2,5 @@ package protocol;
 public enum Message 
 {
 	// loai tin nhan
-	SUCCESS, FAILURE, BEGIN, END, STRING, DATA
+	NOTI, SENDFILE, RECVFILE, LISTFILE, FILESIZE, FILEDATA
 }
