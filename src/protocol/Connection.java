@@ -23,7 +23,8 @@ public class Connection extends Thread {
 	private boolean client;
 	
 	public Connection(Socket sv, boolean client) {
-		socketConnection = sv;
+		this.socketConnection = sv;
+		this.client = client;
 		start();
 	}
 		

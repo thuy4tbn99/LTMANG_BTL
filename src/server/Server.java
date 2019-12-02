@@ -30,12 +30,7 @@ public class Server {
 				Connection newConn = new Connection(acceptedSocket, false);
 				serverConnection.add(newConn);	
 				
-				System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " +  acceptedSocket.getPort());
-				
-				// Bat dau trao doi du lieu
-				// serverTalk ben Connection.java
-				newConn.serverTalk();
-				
+				System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " +  acceptedSocket.getPort());	
 			} catch (IOException e) {
 				System.out.println("Cannot established a connection with the client.");
 				continue;
