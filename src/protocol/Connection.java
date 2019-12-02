@@ -20,7 +20,7 @@ public class Connection extends Thread {
 	private FileInputStream fileRead  		= null;
 	private Packet packet 					= null;
 	private File file 						= null;
-	private final int bufferSize 			= 2048;
+	private final int bufferSize 			= 1024;
 	private boolean client;
 	
 	public Connection(Socket sv) {
@@ -56,7 +56,7 @@ public class Connection extends Thread {
 				{
 					packet = new Packet(Message.LISTFILE, 0, null);
 					socketWrite.writeObject(packet);
-					
+					System.out.println("Sending list req");
 					// Doc ten cac file tu server
 					packet = (Packet) socketRead.readObject();
 					System.out.println("List of files: ");
@@ -91,6 +91,7 @@ public class Connection extends Thread {
 			try 
 			{
 				packet = (Packet) socketRead.readObject();
+                                System.out.println("Received packet.");
 				switch(packet.getMsgType())
 				{
 					// Xu li cac kieu cua tin nhan
@@ -105,7 +106,7 @@ public class Connection extends Thread {
 						try
 						{
 							// Ten file se duoc gui trong phan data duoi dang string
-							file = new File("server/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+							file = new File("src/server/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
 							fileRead = new FileInputStream(file);
 							long fileSize = file.length();
 							System.out.println(fileSize);
@@ -123,11 +124,13 @@ public class Connection extends Thread {
 							
 							// Doc roi gui nhu binh thuong
 							// Kiem tra lai doan duoi, hinh nhu data bi mat
-							byte[] buffer = new byte[bufferSize];
+							//byte[] buffer = new byte[bufferSize];                                                        
 							int count;
-							while ((count = fileRead.read(buffer)) >= 0)
+							while (fileSize > 0)
 							{
-								socketWrite.writeObject(new Packet(null, count, buffer));
+                                                            Packet sendPacket = new Packet();
+                                                            sendPacket.setDataLength(fileRead.read(sendPacket.getData()));
+                                                            socketWrite.writeObject(sendPacket);
 							}
 							System.out.println("File sent to the client!");
 							fileWrite.close();
@@ -143,12 +146,13 @@ public class Connection extends Thread {
 					{
 						try 
 						{
-							file = new File("client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+							file = new File("src/client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
 							fileWrite = new FileOutputStream(file);
 							System.out.println("IN HERE");
 							
 							// Hien tai chua chuyen duoc long sang byte nen khong dung packet
 							long fileSize = socketRead.readLong();
+                                                        System.out.println("File size is: " + fileSize);
 							int count;
 							
 							// Doc du lieu roi viet vao file
@@ -176,7 +180,7 @@ public class Connection extends Thread {
 					case LISTFILE:
 					{
 						// Liet ke danh sach file trong folder
-						File folder = new File("server/files");
+						File folder = new File("src/server/files");
 						File[] fileNames = folder.listFiles();
 						if (fileNames.length == 0)
 						{
@@ -195,6 +199,7 @@ public class Connection extends Thread {
 						message.trimToSize();
 						// HELP TOI LAM CA TOI DAU LUNG LAM ROI
 						socketWrite.writeObject(new Packet(Message.NOTI, message.toString().getBytes().length, message.toString().getBytes()));
+                                                System.out.println("Sending list of files.");
 						break;
 					}
 					default: 

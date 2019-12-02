@@ -6,7 +6,7 @@ public class Packet implements Serializable {
 	// Cau truc packet don gian
 	private Message msgType;
 	private long dataLength;
-	private byte[] data;
+	private byte[] data = new byte[1024];
 	
 	public Packet(Message msgType, long dataLength, byte[] data)
 	{
@@ -15,7 +15,10 @@ public class Packet implements Serializable {
 		this.data = data;
 	}
 	
-	public Packet() {}
+	public Packet()
+        {
+            this.msgType = null;
+        }
 
 	public Message getMsgType() 
 	{
