@@ -35,7 +35,8 @@ public class Connection extends Thread {
 		       
 			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());   
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
-           
+           if (client) clientTalk();
+            else serverTalk();
             
 		} catch (Exception e) {
 			e.printStackTrace();
