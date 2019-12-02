@@ -24,6 +24,11 @@ public class Packet implements Serializable {
 	{
 		return msgType;
 	}
+	public void reset() {
+		this.setMsgType(null);
+		this.setDataLength(0);
+		this.setData(null);
+	}
 
 	public void setMsgType(Message msgType) 
 	{

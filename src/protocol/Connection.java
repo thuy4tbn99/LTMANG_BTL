@@ -35,7 +35,7 @@ public class Connection extends Thread {
 		       
 			socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());   
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
-           if (client) clientTalk();
+            if (client) clientTalk();
             else serverTalk();
             
 		} catch (Exception e) {
@@ -131,14 +131,16 @@ public class Connection extends Thread {
 							
 							// Doc roi gui nhu binh thuong
 							// Kiem tra lai doan duoi, hinh nhu data bi mat
-							//byte[] buffer = new byte[bufferSize];                                                        
+							//byte[] buffer = new byte[bufferSize];       
+							Packet sendPacket;
 							while (fileSize > count)
 							{
-                                 Packet sendPacket = new Packet();
+								 sendPacket = new Packet();
                                  int reading_size = fileRead.read(sendPacket.getData());
                                  sendPacket.setDataLength(reading_size);
                                  socketWrite.writeObject(sendPacket);
                                  count += reading_size;
+                                 sendPacket = null;
 							}
 							System.out.println("File sent to the client!");
 							fileWrite.close();
@@ -153,14 +155,14 @@ public class Connection extends Thread {
 					case RECVFILE:
 					{
 						try 
-						{
+						{	long time1 = System.currentTimeMillis();
 							file = new File("src/client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
 							fileWrite = new FileOutputStream(file);
 							System.out.println("IN HERE");
 							
 							// Hien tai chua chuyen duoc long sang byte nen khong dung packet
 							long fileSize = socketRead.readLong();
-                                                        System.out.println("File size is: " + fileSize);
+                            System.out.println("File size is: " + fileSize);
 							int count;
 							
 							// Doc du lieu roi viet vao file
@@ -175,6 +177,8 @@ public class Connection extends Thread {
 							}
 							System.out.println("File received!");
 							fileWrite.close();
+							long time2 = System.currentTimeMillis();
+							System.out.println(time2-time1);
 							if (client) return;
 							else break;
 						}
