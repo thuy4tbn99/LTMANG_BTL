@@ -75,10 +75,13 @@ public class Connection extends Thread {
 					// Kiem tra loi o cho RECV vs SEND
 					serverTalk();
 				}
+				else 
+				{
+					System.out.println("Cannot understand your request. Try again.");
+				}
 			} 
 			catch (IOException | ClassNotFoundException e) 
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -92,7 +95,7 @@ public class Connection extends Thread {
 			try 
 			{
 				packet = (Packet) socketRead.readObject();
-                System.out.println("Received packet.");
+                System.out.println("Received a packet.");
 				switch(packet.getMsgType())
 				{
 					// Xu li cac kieu cua tin nhan
@@ -111,7 +114,7 @@ public class Connection extends Thread {
 							file = new File("server/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
 							fileRead = new FileInputStream(file);
 							long fileSize = file.length();
-							System.out.println(fileSize);
+							System.out.println("Received a request to send file " +  file.getName() + " to the client. The file size is: " + fileSize);
 						
 							// Doc va gui file cho nguoi request
 							socketWrite.writeObject(new Packet(Message.RECVFILE, file.getName().getBytes().length, file.getName().getBytes()));
@@ -123,6 +126,7 @@ public class Connection extends Thread {
 							 * Prim la kieu long, int, ....
 							 */
 							socketWrite.writeLong(fileSize);
+							long count;
 							
 							// Doc roi gui nhu binh thuong
 							// Kiem tra lai doan duoi, hinh nhu data bi mat
@@ -130,7 +134,9 @@ public class Connection extends Thread {
 							{
 								Packet sendPacket = new Packet();
                                 sendPacket.setDataLength(fileRead.read(sendPacket.getData()));
+                                count = sendPacket.getDataLength();
                                 socketWrite.writeObject(sendPacket);
+                                fileSize -= count;
 							}
 							System.out.println("File sent to the client!");
 							fileWrite.close();
