@@ -15,7 +15,7 @@ public class Client {
         {
         	// Tao 1 thread de ket noi den server
         	// Xem cach de nghe ket noi cua cac thang client
-            conn = new Connection(new Socket(ip, port));
+            conn = new Connection(new Socket(ip, port), true);
             System.out.println("Connected to the server!");
             
             // Bat dau trao doi du lieu

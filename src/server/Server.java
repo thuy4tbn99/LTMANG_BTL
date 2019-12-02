@@ -27,7 +27,7 @@ public class Server {
 			Socket acceptedSocket = null;
 			try {
 				acceptedSocket = serverSocket.accept();
-				Connection newConn = new Connection(acceptedSocket);
+				Connection newConn = new Connection(acceptedSocket, false);
 				serverConnection.add(newConn);	
 				
 				System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " +  acceptedSocket.getPort());
