@@ -21,7 +21,6 @@ public class Connection extends Thread {
     private FileInputStream fileRead = null;
     private Packet packet = null;
     private File file = null;
-    private final int bufferSize = 1024;
     private boolean client;
 
     public Connection(Socket sv, boolean client) {
@@ -84,7 +83,7 @@ public class Connection extends Thread {
         while (true) {
             synchronized(Server.getLock())
             {
-                System.out.println("Thread: "+Server.getFileName());
+                System.out.println("Thread: " + Server.getFileName());
                 
             }
             try {
@@ -101,7 +100,7 @@ public class Connection extends Thread {
                     case SENDFILE: {
                         try {
                             // Ten file se duoc gui trong phan data duoi dang string
-                            file = new File("src/server/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+                            file = new File("server/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
                             fileRead = new FileInputStream(file);
                             long fileSize = file.length();
                             System.out.println("Received a request to send file " + file.getName() + " to the client. The file size is: " + fileSize);
@@ -121,11 +120,12 @@ public class Connection extends Thread {
                             // Doc roi gui nhu binh thuong
                             // Kiem tra lai doan duoi, hinh nhu data bi mat
                             //byte[] buffer = new byte[bufferSize];
-                            Packet sendPacket = new Packet();
-                            while (fileSize > count) {                                
-                                int reading_size = fileRead.read(sendPacket.getData());
-                                sendPacket.setDataLength(reading_size);
-                                socketWrite.writeObject(sendPacket);
+                            //Packet sendPacket = new Packet();
+                            while (fileSize > count) {          
+                            	packet = new Packet();
+                                int reading_size = fileRead.read(packet.getData());
+                                packet.setDataLength(reading_size);
+                                socketWrite.writeObject(packet);
                                 count += reading_size;
                             }
                             System.out.println("File sent to the client!");
@@ -138,7 +138,8 @@ public class Connection extends Thread {
                     }
                     case RECVFILE: {
                         try {
-                            file = new File("src/client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+                            long begin = System.currentTimeMillis();
+                        	file = new File("client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
                             fileWrite = new FileOutputStream(file);
                             System.out.println("IN HERE");
 
@@ -157,6 +158,7 @@ public class Connection extends Thread {
                             }
                             System.out.println("File received!");
                             fileWrite.close();
+                            System.out.println(System.currentTimeMillis() - begin);
                             if (client) {
                                 return;
                             } else {
@@ -168,9 +170,10 @@ public class Connection extends Thread {
                         break;
                     }
 
-                    case LISTFILE: {
+                    case LISTFILE: 
+                    {
                         // Liet ke danh sach file trong folder
-                        File folder = new File("src/server/files");
+                        File folder = new File("server/files");
                         File[] fileNames = folder.listFiles();
                         if (fileNames.length == 0) {
                             String message = "No file exist in the server folder.";
