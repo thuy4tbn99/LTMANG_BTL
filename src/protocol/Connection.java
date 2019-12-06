@@ -1,11 +1,9 @@
 package protocol;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -20,13 +18,28 @@ public class Connection extends Thread {
     private FileInputStream fileRead = null;
     private Packet packet = null;
     private File file = null;
-    private String side;
-    private Server sv_connect;
+    private boolean client;
+    private int clientHostPort;
+    private Server server;
 
-    public Connection(Socket sv, String side, Server sv_connect) {
+    public Connection(Socket sv, boolean client, Server server) {
         this.socketConnection = sv;
-        this.side = side;
-        this.sv_connect = sv_connect;
+        this.client = client;
+        this.server = server;
+        start();
+    }
+    
+    public Connection(Socket sv, boolean client) {
+        this.socketConnection = sv;
+        this.client = client;
+        start();
+    }
+    
+    public Connection(Socket sv, boolean client, int clientHostPort)
+    {
+    	this.socketConnection = sv;
+        this.client = client;
+        this.clientHostPort = clientHostPort;;
         start();
     }
 
@@ -36,7 +49,7 @@ public class Connection extends Thread {
 
             socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
-           	if( side.equals("Client")) ClientTalk();
+           	if (client) ClientTalk();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,14 +57,13 @@ public class Connection extends Thread {
     
     public void ClientTalk() {
     	// co recv file,  message, client_ip, redirect_connection
-    	System.out.println("client talk");
     	while(true) {
 	    	try {
 	    		packet = (Packet) socketRead.readObject();
 	            System.out.println("Received a packet from a server.");
 				
 		    	switch (packet.getMsgType()) {
-		    		case MESSAGEForSERVER: {
+		    		case MESSAGE_SERVER: {
 		    			 // In tin nhan duoc gui ra man hinh
 		    			String fromClient = new String(packet.getData(), StandardCharsets.UTF_8);
 	                    System.out.println(fromClient);
@@ -60,7 +72,7 @@ public class Connection extends Thread {
 	                    // nhan tin nhan down file @@done@@ tu client
 	                    break;
 		    		}
-		    		case MESSAGEForCLIENT: {
+		    		case MESSAGE_CLIENT: {
 		    			 // In tin nhan duoc gui ra man hinh
 		    			// khong co tac dung gi trong xu ly
 	                   System.out.println(new String(packet.getData(), StandardCharsets.UTF_8));
@@ -68,7 +80,7 @@ public class Connection extends Thread {
 		    		}
 		    		case RECEIVE_FILE: {
 		    			long begin = System.currentTimeMillis();
-	                	file = new File("src/client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+	                	file = new File("client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
 	                    fileWrite = new FileOutputStream(file);
 	
 	                    long fileSize = socketRead.readLong();
@@ -85,40 +97,54 @@ public class Connection extends Thread {
 	                    System.out.println("File received!");
 	                    fileWrite.close();
 	                    System.out.println(System.currentTimeMillis() - begin);
-	                    String done_mess = "@@done@@";
-	                    socketWrite.writeObject(new Packet(Message.MESSAGEForSERVER, done_mess.getBytes().length, done_mess.getBytes()));
+	                    
+	                    // Gui tin nhan thong bao minh la nguoi co file
+	                    String message = socketConnection.getInetAddress().toString();
+	                    packet = new Packet(Message.REDIRECT_CONNECTION, message.getBytes().length, message.getBytes());
+	                    socketWrite.writeInt(clientHostPort);
+	                    socketWrite.writeObject(packet);
 	                    
 	                    break;
 		    		}
 		    		
 		    		case REDIRECT_CONNECTION: {
 		    			// nhan ip cua client chuan bi dong vai tro server
-		    			System.out.println("redirect connection");
-		    			String Host_IP = new String( packet.getData(), StandardCharsets.UTF_8);
-		    			System.out.println("ip:" + Host_IP);
-		    			// tao thread moi cho client kieu gi nhi????????
-		    			// tao thread moi cho client kieu gi nhi????????
-		    			// tao thread moi cho client kieu gi nhi????????
+		    			System.out.println("Redirecting connection to a client");
+		    			System.out.println(server.getClientHostIP());
+		    			System.out.println(server.getClientHostPort());
+		    			//Connection redirect = new Connection(new Socket(server.getClientHostIP(), server.getClientHostPort()), true);
 		    			break;
 		    		}
-		    		default:{
+		    		default:
+		    		{
+		    			System.out.println("Connection terminated!");
 		    			break;
 		    		}
 		    	}
 			} catch (Exception e) {
-				e.printStackTrace();
+				continue;
 			}
     	}
     }
-
-    public void ServerTalk() {
-
+    
+    public void serverRedirect()
+    {
+    	try {
+			// Redirecting other client to the client with the file...
+    		socketWrite.writeObject(new Packet(Message.REDIRECT_CONNECTION, 0, null));
+			
+    		System.out.println("Redirecting other clients...");
+		} 
+    	catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     public void serverSendFile() {
     	try {
             // Ten file se duoc gui trong phan data duoi dang string
-            file = new File("src/server/files/" + new String(Server.getFileName()));
+            file = new File("server/files/" + new String(Server.getFileName()));
             fileRead = new FileInputStream(file);
             long fileSize = file.length();
             System.out.println("Sending file " + file.getName() + " to the client. The file size is: " + fileSize + " bytes.");
@@ -139,17 +165,21 @@ public class Connection extends Thread {
             }
             System.out.println("File sent to the client!");
             fileRead.close();
-        } catch (IOException e) {
+            
+            // Nhan tin nhan tu thang client muon host
+            server.setClientHostPort(socketRead.readInt());
+    		packet = (Packet) socketRead.readObject();
+    		server.setClientHostIP(new String(packet.getData(), StandardCharsets.UTF_8).substring(1));
+        } 
+    	catch (ClassNotFoundException | IOException e) {
             String error = "Cannot find or open the file you requested.";
             try {
-				socketWrite.writeObject(new Packet(Message.MESSAGEForCLIENT, error.getBytes().length, error.getBytes()));
+				socketWrite.writeObject(new Packet(Message.MESSAGE_CLIENT, error.getBytes().length, error.getBytes()));
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
         }
     	
-    	// lang nghe packet tu phia client lai
-    	ClientTalk(); 
     }
     public Socket getSocketConnection() {
         return socketConnection;
