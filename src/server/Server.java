@@ -24,7 +24,15 @@ public class Server extends Thread {
     
     
     
-    public static String getFileName() {
+    public ArrayList<Connection> getServerConnection() {
+		return serverConnection;
+	}
+
+	public void setServerConnection(ArrayList<Connection> serverConnection) {
+		this.serverConnection = serverConnection;
+	}
+
+	public static String getFileName() {
         return fileName;
     }
     
@@ -79,12 +87,17 @@ public class Server extends Thread {
                         } catch (IOException ex) {
                             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                         }
+                        
                         System.out.println(fileName);                       
                         serverConnection.get(0).serverSendFile();
-                        for (int i = 1; i < serverConnection.size(); i++)
-                        {
-                        	serverConnection.get(i).serverRedirect();
-                        }
+                        
+                        
+                        // chuyen sang cuoi cung cua sendFile();
+                        
+//                        for (int i = 1; i < serverConnection.size(); i++)
+//                        {
+//                        	serverConnection.get(i).serverRedirect();
+//                        }
                     }
                     System.out.println("waiting for client ");
                 } catch (IOException e) {
@@ -92,13 +105,6 @@ public class Server extends Thread {
                     continue;
                 }
             }
-//            System.out.print("Type file name you want to upload: ");
-//            try {
-//                fileName = cmdReader.readLine(); // doc ten file de chuan bi truyen file sang client
-//            } catch (IOException ex) {
-//                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//            System.out.println(fileName);
         }
 
     }
