@@ -23,6 +23,9 @@ public class Connection extends Thread {
     private int clientHostPort;
     private Server server;
     private Client _client;
+    
+    private boolean host; // dung de check xem client co phai la host hay khong
+    private String FileName_Host = null;
 
 
     public Connection(Socket sv, boolean client, Server server) {
@@ -44,15 +47,28 @@ public class Connection extends Thread {
         this.client = client;
         this.clientHostPort = clientHostPort;
         this._client = _client;
+
+        start();
+    }
+    
+    public Connection(Socket sv, boolean client, boolean host, String FileName) {
+        this.socketConnection = sv;
+        this.client = client;
+        this.host = host;
+        this.FileName_Host = FileName;
         start();
     }
 
     public void run() {
         try {
-            //System.out.println("A thread has been created!");
+            System.out.println("A thread has been created!");
 
             socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
+            if( socketWrite == null || socketRead == null) System.out.println("socket read write null");
+            if( host) {
+            	this.serverSendFile(false, FileName_Host);
+            }
            	if (client) ClientTalk();
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,9 +87,6 @@ public class Connection extends Thread {
 		    			 // In tin nhan duoc gui ra man hinh
 		    			String fromClient = new String(packet.getData(), StandardCharsets.UTF_8);
 	                    System.out.println(fromClient);
-	                    
-	                    // lang nghe goi tin done tu client 
-	                    // nhan tin nhan down file @@done@@ tu client
 	                    break;
 		    		}
 		    		case MESSAGE_CLIENT: {
@@ -85,10 +98,13 @@ public class Connection extends Thread {
 		    		case RECEIVE_FILE: {
 		    			long begin = System.currentTimeMillis();
 		    			String file_name = new String(packet.getData(), StandardCharsets.UTF_8);
+		    			System.out.println("client's ready to rec " +file_name);
 	                	file = new File("src/client/files/" + file_name);
+	                	
 	                    fileWrite = new FileOutputStream(file);
 	                    _client.setFileName(file_name);
 	                    long fileSize = socketRead.readLong();
+
 	                    System.out.println("File size is: " + fileSize + " bytes.");
 	                    int count;
 	
@@ -164,8 +180,10 @@ public class Connection extends Thread {
             fileRead = new FileInputStream(file);
             long fileSize = file.length();
             System.out.println("Sending file " + file.getName() + " to the client. The file size is: " + fileSize + " bytes.");
-
-            // gui ten file, kich thuoc file cho client
+            
+            if( socketWrite == null) System.out.println("socket write null");
+            
+            // gui ten file, kich huoc filte cho client
             socketWrite.writeObject(new Packet(Message.RECEIVE_FILE, file.getName().getBytes().length, file.getName().getBytes()));
             socketWrite.writeLong(fileSize);      
             
@@ -198,7 +216,7 @@ public class Connection extends Thread {
 	    		// gui ip+ port cua host sang cho cac client con lai
 	    		
 	    		for( int i =1 ; i< server.getServerConnection().size(); i++) {
-	    			server.getServerConnection().get(i).serverRedirect(host_ip, port, new String(Server.getFileName()));
+	    			server.getServerConnection().get(i).serverRedirect(host_ip, port, FileName);
 	    			System.out.println("sent redirect request to client...");
 	    		}
             }

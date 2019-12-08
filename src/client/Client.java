@@ -17,6 +17,7 @@ public class Client extends Thread {
     
     protected static String fileName = null;
     
+    protected boolean host = true;
     
     Socket acceptedSocket = null;
     
@@ -33,10 +34,9 @@ public class Client extends Thread {
             while (true)
             {
             	acceptedSocket = clientHost.accept();
-            	conn = new Connection(acceptedSocket, false);
+            	conn = new Connection(acceptedSocket, false, host, getFileName());
             	System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " + acceptedSocket.getPort());
             	System.out.println("file name " + getFileName());
-            	conn.serverSendFile(false, getFileName());
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -44,8 +44,8 @@ public class Client extends Thread {
     }
     
     public void connectToHost(String IP, int port, String fileName) {
-    	System.out.println("host ip: " + IP + " host port : "+ port );
-    	System.out.println("file name " + fileName );
+    	System.out.println(" \"host ip: " + IP + " host port : "+ port );
+    	System.out.println("file name " + fileName + "\"" );
     	try {
 			conn = new Connection(new Socket(IP,port), true);
 		} catch (Exception e) {
