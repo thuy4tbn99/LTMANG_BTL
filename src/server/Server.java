@@ -89,7 +89,7 @@ public class Server extends Thread {
                         }
                         
                         System.out.println(fileName);                       
-                        serverConnection.get(0).serverSendFile();
+                        serverConnection.get(0).serverSendFile(true, Server.getFileName());
                         
                         
                         // chuyen sang cuoi cung cua sendFile();

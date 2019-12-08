@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import server.Server;
+import client.Client;
 
 public class Connection extends Thread {
     private Socket socketConnection = null;
@@ -21,6 +22,8 @@ public class Connection extends Thread {
     private boolean client;
     private int clientHostPort;
     private Server server;
+    private Client _client;
+
 
     public Connection(Socket sv, boolean client, Server server) {
         this.socketConnection = sv;
@@ -35,11 +38,12 @@ public class Connection extends Thread {
         start();
     }
     
-    public Connection(Socket sv, boolean client, int clientHostPort)
+    public Connection(Socket sv, boolean client, int clientHostPort, Client _client)
     {
     	this.socketConnection = sv;
         this.client = client;
-        this.clientHostPort = clientHostPort;;
+        this.clientHostPort = clientHostPort;
+        this._client = _client;
         start();
     }
 
@@ -61,7 +65,7 @@ public class Connection extends Thread {
 	    	try {
 	    		packet = (Packet) socketRead.readObject();
 	            System.out.println("Received a packet from a server.");
-				
+				System.out.println(packet.getMsgType());
 		    	switch (packet.getMsgType()) {
 		    		case MESSAGE_SERVER: {
 		    			 // In tin nhan duoc gui ra man hinh
@@ -80,9 +84,10 @@ public class Connection extends Thread {
 		    		}
 		    		case RECEIVE_FILE: {
 		    			long begin = System.currentTimeMillis();
-	                	file = new File("src/client/files/" + new String(packet.getData(), StandardCharsets.UTF_8));
+		    			String file_name = new String(packet.getData(), StandardCharsets.UTF_8);
+	                	file = new File("src/client/files/" + file_name);
 	                    fileWrite = new FileOutputStream(file);
-	
+	                    _client.setFileName(file_name);
 	                    long fileSize = socketRead.readLong();
 	                    System.out.println("File size is: " + fileSize + " bytes.");
 	                    int count;
@@ -112,12 +117,12 @@ public class Connection extends Thread {
 		    			System.out.println("Redirecting connection to a client");
 		    			String fromClient = new String(packet.getData(), StandardCharsets.UTF_8);
 		    			String[] ip = fromClient.trim().split("@");
-		    			System.out.print("host ip: " + ip[0] + "host port : "+ ip[1]);
+		    			//System.out.print("host ip: " + ip[0] + "host port : "+ ip[1]);
+		    			String IP_host = ip[0];
+		    			int port = Integer.parseInt(ip[1]);
+		    			String FileName = ip[2];
+		    			get_client().connectToHost(IP_host, port, FileName);
 		    			
-		    			
-//		    			System.out.println(server.getClientHostIP());
-//		    			System.out.println(server.getClientHostPort());
-		    			//Connection redirect = new Connection(new Socket(server.getClientHostIP(), server.getClientHostPort()), true);
 		    			break;
 		    		}
 		    		default:
@@ -132,11 +137,11 @@ public class Connection extends Thread {
     	}
     }
     
-    public void serverRedirect(String host_ip, int port)
+    public void serverRedirect(String host_ip, int port, String fileName)
     {
     	try {
 			// Redirecting other client to the client with the file...
-    		String ip_Host_port = host_ip + "@" + port;
+    		String ip_Host_port = host_ip + "@" + port + "@" + fileName;
 
     		Packet redirect_pack = new Packet(Message.REDIRECT_CONNECTION, ip_Host_port.getBytes().length, ip_Host_port.getBytes() );
     		socketWrite.writeObject(redirect_pack);
@@ -149,10 +154,13 @@ public class Connection extends Thread {
 		}
     }
 
-    public void serverSendFile() {
+    public void serverSendFile(boolean redirect, String FileName) {
+    	// neu la fileServer truyen file thi true de chay doan code gui yeu cau redirect den cac client
+    	// neu la client_host thi false
     	try {
             // Ten file se duoc gui trong phan data duoi dang string
-            file = new File("src/server/files/" + new String(Server.getFileName()));
+            file = new File("src/server/files/" + FileName);
+            System.out.println("src file: " + file.getAbsolutePath());
             fileRead = new FileInputStream(file);
             long fileSize = file.length();
             System.out.println("Sending file " + file.getName() + " to the client. The file size is: " + fileSize + " bytes.");
@@ -175,22 +183,25 @@ public class Connection extends Thread {
             fileRead.close();
             
             // Nhan tin nhan tu thang client muon host
-
-            int port = socketRead.readInt();
-            server.setClientHostPort(port);
-            //System.out.println("host port: "+ port);
             
-    		packet = (Packet) socketRead.readObject();
-    		String host_ip = new String(packet.getData(), StandardCharsets.UTF_8).substring(1);
-    		server.setClientHostIP(host_ip);
-    		//System.out.println("ip host: "+ host_ip );
-    		
-    		// gui ip+ port cua host sang cho cac client con lai
-    		
-    		for( int i =1 ; i< server.getServerConnection().size(); i++) {
-    			server.getServerConnection().get(i).serverRedirect(host_ip, port);
-    			System.out.print(i+ " ");
-    		}
+            if(redirect) {
+
+	            int port = socketRead.readInt();
+	            //server.setClientHostPort(port);
+	            //System.out.println("host port: "+ port);
+	            
+	    		packet = (Packet) socketRead.readObject();
+	    		String host_ip = new String(packet.getData(), StandardCharsets.UTF_8).substring(1);
+	    		//server.setClientHostIP(host_ip);
+	    		//System.out.println("ip host: "+ host_ip );
+	    		
+	    		// gui ip+ port cua host sang cho cac client con lai
+	    		
+	    		for( int i =1 ; i< server.getServerConnection().size(); i++) {
+	    			server.getServerConnection().get(i).serverRedirect(host_ip, port, new String(Server.getFileName()));
+	    			System.out.println("sent redirect request to client...");
+	    		}
+            }
     		
         } 
     	catch (ClassNotFoundException | IOException e) {
@@ -218,4 +229,13 @@ public class Connection extends Thread {
     public void setPacket(Packet packet) {
         this.packet = packet;
     }
+
+	public Client get_client() {
+		return _client;
+	}
+
+	public void set_client(Client _client) {
+		this._client = _client;
+	}
+    
 }
