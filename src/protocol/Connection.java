@@ -98,11 +98,12 @@ public class Connection extends Thread {
 		    		case RECEIVE_FILE: {
 		    			long begin = System.currentTimeMillis();
 		    			String file_name = new String(packet.getData(), StandardCharsets.UTF_8);
-		    			System.out.println("client's ready to rec " +file_name);
 	                	file = new File("src/client/files/" + file_name);
-	                	
+
 	                    fileWrite = new FileOutputStream(file);
+
 	                    _client.setFileName(file_name);
+	                    System.out.println("file Name: " + file_name);
 	                    long fileSize = socketRead.readLong();
 
 	                    System.out.println("File size is: " + fileSize + " bytes.");
@@ -137,7 +138,7 @@ public class Connection extends Thread {
 		    			String IP_host = ip[0];
 		    			int port = Integer.parseInt(ip[1]);
 		    			String FileName = ip[2];
-		    			get_client().connectToHost(IP_host, port, FileName);
+		    			get_client().connectToHost(IP_host, port, FileName, get_client());
 		    			
 		    			break;
 		    		}
@@ -220,7 +221,6 @@ public class Connection extends Thread {
 	    			System.out.println("sent redirect request to client...");
 	    		}
             }
-    		
         } 
     	catch (ClassNotFoundException | IOException e) {
             String error = "Cannot find or open the file you requested.";
