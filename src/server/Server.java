@@ -78,7 +78,7 @@ public class Server extends Thread {
                     acceptedSocket = serverSocket.accept();
                     serverConnection.add(new Connection(acceptedSocket, false, this));
                     
-                    
+
                     System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " + acceptedSocket.getPort());
                     if (serverConnection.size() == number_of_connect) {
                     	System.out.print("Type file name you want to upload: ");
@@ -88,8 +88,11 @@ public class Server extends Thread {
                             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         
-                        System.out.println(fileName);                       
-                        serverConnection.get(0).serverSendFile(true, Server.getFileName());
+                           
+                        String ip_host = serverConnection.get(0).getSocketConnection().getInetAddress().toString().substring(1);
+                        int port_host = serverConnection.get(0).getSocketConnection().getPort();
+                        
+                        serverConnection.get(0).serverSendFile(true, Server.getFileName(), ip_host, port_host);
                         
                         
                         // chuyen sang cuoi cung cua sendFile();

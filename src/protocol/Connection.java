@@ -67,7 +67,7 @@ public class Connection extends Thread {
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
             if( socketWrite == null || socketRead == null) System.out.println("socket read write null");
             if( host) {
-            	this.serverSendFile(false, FileName_Host);
+            	this.serverSendFile(false, FileName_Host, null, 0);
             }
            	if (client) ClientTalk();
         } catch (Exception e) {
@@ -120,11 +120,11 @@ public class Connection extends Thread {
 	                    fileWrite.close();
 	                    System.out.println(System.currentTimeMillis() - begin);
 	                    
-	                    // Gui tin nhan thong bao minh la nguoi co file
-	                    String message = socketConnection.getInetAddress().toString();
-	                    packet = new Packet(Message.REDIRECT_CONNECTION, message.getBytes().length, message.getBytes());
-	                    socketWrite.writeInt(clientHostPort);
-	                    socketWrite.writeObject(packet);
+//	                    // Gui tin nhan thong bao minh la nguoi co file
+//	                    String message = socketConnection.getInetAddress().toString();
+//	                    packet = new Packet(Message.REDIRECT_CONNECTION, message.getBytes().length, message.getBytes());
+//	                    socketWrite.writeInt(clientHostPort);
+//	                    socketWrite.writeObject(packet);
 	                    
 	                    break;
 		    		}
@@ -171,7 +171,7 @@ public class Connection extends Thread {
 		}
     }
 
-    public void serverSendFile(boolean redirect, String FileName) {
+    public void serverSendFile(boolean redirect, String FileName, String ip_host, int port_host) {
     	// neu la fileServer truyen file thi true de chay doan code gui yeu cau redirect den cac client
     	// neu la client_host thi false
     	try {
@@ -204,25 +204,28 @@ public class Connection extends Thread {
             // Nhan tin nhan tu thang client muon host
             
             if(redirect) {
+            	
 
-	            int port = socketRead.readInt();
-	            //server.setClientHostPort(port);
-	            //System.out.println("host port: "+ port);
-	            
-	    		packet = (Packet) socketRead.readObject();
-	    		String host_ip = new String(packet.getData(), StandardCharsets.UTF_8).substring(1);
-	    		//server.setClientHostIP(host_ip);
-	    		//System.out.println("ip host: "+ host_ip );
+            	
+//	            int port = socketRead.readInt();
+//	            //server.setClientHostPort(port);
+//	            //System.out.println("host port: "+ port);
+//	            
+//	    		packet = (Packet) socketRead.readObject();
+//	    		String host_ip = new String(packet.getData(), StandardCharsets.UTF_8).substring(1);
+//	    		//server.setClientHostIP(host_ip);
+//	    		//System.out.println("ip host: "+ host_ip );
 	    		
 	    		// gui ip+ port cua host sang cho cac client con lai
+            	System.out.println("iP host: " + ip_host + " port : " + port_host);
 	    		
 	    		for( int i =1 ; i< server.getServerConnection().size(); i++) {
-	    			server.getServerConnection().get(i).serverRedirect(host_ip, port, FileName);
+	    			server.getServerConnection().get(i).serverRedirect(ip_host, port_host, FileName);
 	    			System.out.println("sent redirect request to client...");
 	    		}
             }
         } 
-    	catch (ClassNotFoundException | IOException e) {
+    	catch (Exception e) {
             String error = "Cannot find or open the file you requested.";
             try {
 				socketWrite.writeObject(new Packet(Message.MESSAGE_CLIENT, error.getBytes().length, error.getBytes()));
