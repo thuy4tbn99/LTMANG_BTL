@@ -92,7 +92,7 @@ public class Server extends Thread {
                         String ip_host = serverConnection.get(0).getSocketConnection().getInetAddress().toString().substring(1);
                         int port_host = serverConnection.get(0).getSocketConnection().getPort();
                         
-                        serverConnection.get(0).serverSendFile(true, Server.getFileName(), ip_host, port_host);
+                        serverConnection.get(0).serverSendFile(true, Server.getFileName(), ip_host);
                         
                         
                         // chuyen sang cuoi cung cua sendFile();
