@@ -94,6 +94,9 @@ public class Server extends Thread {
                         
                         serverConnection.get(0).serverSendFile(true, Server.getFileName(), ip_host);
                         
+			System.out.print("Type file name you want to upload: ");
+			fileName = cmdReader.readLine(); // doc ten file de chuan bi truyen file sang client
+			serverConnection.get(0).serverSendFile(true, Server.getFileName(), ip_host);
                         
                         // chuyen sang cuoi cung cua sendFile();
                         
