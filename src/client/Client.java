@@ -42,11 +42,11 @@ public class Client extends Thread {
         }
     }
 
-    public void connectToHost(String IP, int port, String fileName, Client c) {
+    public void connectToHost(String IP, int port,long fileSize, String fileName, Client c) {
         System.out.println(" \"host ip: " + IP + " host port : " + port);
-        System.out.println("file name " + fileName + "\"");
+        System.out.println("file name " + fileName + ", file size" + fileSize + "\"");
         try {
-            conn = new Connection(new Socket(IP, port), true, true, this);
+            conn = new Connection(new Socket(IP, port), true, true, this, fileSize, fileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
