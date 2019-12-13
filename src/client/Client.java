@@ -46,7 +46,7 @@ public class Client extends Thread {
                 conn = new Connection(acceptedSocket, false, host, this);
                 number_of_clients++;
                 System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " + acceptedSocket.getPort());
-                System.out.println("file name " + getFileName());
+                System.out.println("File name " + getFileName());
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -54,8 +54,8 @@ public class Client extends Thread {
     }
 
     public void connectToHost(String IP, int port,long fileSize, String fileName, Client c) {
-        System.out.println(" \"host ip: " + IP + " host port : " + port);
-        System.out.println("file name " + fileName + ", file size" + fileSize + "\"");
+        System.out.println("Host ip: " + IP + ", host port: " + port);
+        System.out.println("File name: " + fileName + ", file size: " + fileSize);
         try {
             conn = new Connection(new Socket(IP, port), true, true, this, fileSize, fileName);
         } catch (Exception e) {
@@ -75,8 +75,14 @@ public class Client extends Thread {
         return queue;
     }
     
+    
     public int getNumberOfClients() {
         return number_of_clients;
+    }
+    
+    public void changeClientNum(int amount)
+    {
+    	number_of_clients -= amount;
     }
     
     public void EleRead() {
@@ -100,7 +106,7 @@ public class Client extends Thread {
     }
 
     public static void main(String[] args) {
-        new Client("192.168.1.136", 2345);
+        new Client("192.168.1.10", 2345);
     }
 
 }

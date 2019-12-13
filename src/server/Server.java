@@ -74,7 +74,7 @@ public class Server extends Thread {
 
                     System.out.println("Connection established with a client, IP: " + acceptedSocket.getInetAddress() + ", port: " + acceptedSocket.getPort());
                     if (serverConnection.size() == number_of_connect) {
-                        System.out.print("Type file name you want to upload: ");
+                        System.out.println("Type file name you want to upload: ");
                         try {
                             fileName = cmdReader.readLine(); // doc ten file de chuan bi truyen file sang client
                         } catch (IOException ex) {
@@ -86,7 +86,7 @@ public class Server extends Thread {
 
                         serverConnection.get(0).serverSendFile(true, Server.getFileName(), ip_host);
 
-                        System.out.print("Type file name you want to upload: ");
+                        System.out.println("Type file name you want to upload: ");
                         fileName = cmdReader.readLine(); // doc ten file de chuan bi truyen file sang client
                         serverConnection.get(0).serverSendFile(true, Server.getFileName(), ip_host);
 
@@ -96,7 +96,7 @@ public class Server extends Thread {
 //                        	serverConnection.get(i).serverRedirect();
 //                        }
                     }
-                    System.out.println("waiting for client ");
+                    System.out.println("Waiting for client ");
                 } catch (IOException e) {
                     System.out.println("Cannot established a connection with the client.");
                     continue;
@@ -115,7 +115,7 @@ public class Server extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(max_connect);
+        System.out.println("There will be: " + max_connect + " maximum connections.");
         new Server(max_connect, 2345);
     }
 

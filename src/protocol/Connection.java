@@ -83,7 +83,7 @@ public class Connection extends Thread {
             socketWrite = new ObjectOutputStream(socketConnection.getOutputStream());
             socketRead = new ObjectInputStream(socketConnection.getInputStream());
             if (socketWrite == null || socketRead == null) {
-                System.out.println("socket read write null");
+                System.out.println("Socket read write null");
             }
             if (host) {
                 sleep(1000);
@@ -138,10 +138,10 @@ public class Connection extends Thread {
                     case RECEIVE_FILE: {
                         long begin = System.currentTimeMillis();
                         String file_name = new String(packet.getData(), StandardCharsets.UTF_8);
-                        file = new File("src/client/files/" + file_name);
+                        file = new File("client/files/" + file_name);
                         fileWrite = new FileOutputStream(file);
                         //_client.setFileName(file_name);
-                        System.out.println("file Name: " + file_name);
+                        System.out.println("File name: " + file_name);
 
                         //Nhan file size
                         long fileSize;
@@ -164,7 +164,7 @@ public class Connection extends Thread {
                         }
                         System.out.println("File received!");
                         fileWrite.close();
-                        System.out.println(System.currentTimeMillis() - begin);
+                        System.out.println("Transfer time: " + (System.currentTimeMillis() - begin) + "ms");
                         break;
                     }
 
@@ -203,7 +203,7 @@ public class Connection extends Thread {
     public void serverRedirect(String host_ip, String fileName) {
         try {
             // Redirecting other client to the client with the file...
-            file = new File("src/server/files/" + fileName);
+            file = new File("server/files/" + fileName);
             long file_size = file.length();
             String ip_Host_port = host_ip + "@2346@" + file_size + "@" + fileName;
 
@@ -223,22 +223,22 @@ public class Connection extends Thread {
         if (redirect) {
 
             // gui ip+ port cua host sang cho cac client con lai
-            System.out.println("iP host: " + ip_host);
+            System.out.println("IP host: " + ip_host);
 
             for (int i = 1; i < server.getServerConnection().size(); i++) {
                 server.getServerConnection().get(i).serverRedirect(ip_host, FileName);
-                System.out.println("sent redirect request to client...");
+                System.out.println("Sent redirect request to client...");
             }
         }
         try {
             // Ten file se duoc gui trong phan data duoi dang string
             if (host) {
-                file = new File("src/client/files/" + FileName);
+                file = new File("client/files/" + FileName);
             } else {
-                file = new File("src/server/files/" + FileName);
+                file = new File("server/files/" + FileName);
             }
 
-            System.out.println("src file: " + file.getAbsolutePath());
+            System.out.println("Src file: " + file.getAbsolutePath());
             fileRead = new FileInputStream(file);
 
             long fileSize;
@@ -251,7 +251,7 @@ public class Connection extends Thread {
             System.out.println("Sending file " + file.getName() + " to the client. The file size is: " + fileSize + " bytes.");
 
             if (socketWrite == null) {
-                System.out.println("socket write null");
+                System.out.println("Socket write null");
             }
 
             // gui ten file, kich huoc filte cho client
@@ -281,6 +281,7 @@ public class Connection extends Thread {
         }
     }
 
+    // Client lam host gui file den cac client khac
     public void HostSendFile() {
         int count = 0;
         while (file_size > count) {
@@ -296,11 +297,15 @@ public class Connection extends Thread {
                 Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        _client.changeClientNum(1);
     }
 
+    
+    // Ham nhan file cua cac client khac
     public void receiveFromHost() {
         try {
-            file = new File("src/client/files/" + FileName_Host);
+        	long begin = System.currentTimeMillis();
+        	file = new File("client/files/" + FileName_Host);
             fileWrite = new FileOutputStream(file);
             long fileSize = file_size;
             int count;
@@ -312,6 +317,8 @@ public class Connection extends Thread {
             }
             fileWrite.close();
             System.out.println("File received.");
+            System.out.println("Transfer time: " + (System.currentTimeMillis() - begin) + "ms");
+            
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ClassNotFoundException ex) {
